@@ -1,0 +1,134 @@
+﻿@model Project.Models.FolderContentViewModel
+
+@{
+    ViewData["Title"] = "Folder Content";
+}
+
+<h2>@Model.CurrentFolderPath</h2>
+
+<div>
+    <!-- Show current navigation flow -->
+    <p>Current Path: @Model.CurrentFolderPath</p>
+</div>
+
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Left column for Upload File form -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Upload File</h5>
+                    <form asp-action="UploadFile" enctype="multipart/form-data" method="post">
+                        <div class="form-group">
+                            <label for="file">Choose file to upload</label>
+                            <input type="file" class="form-control" id="file" name="file" required>
+                            <input type="hidden" name="parentFolderId" value="@ViewBag.CurrentFolderId" />
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="background-color: cadetblue;">Upload File</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column for Create Subfolder form -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Create Subfolder</h5>
+                    <form asp-action="CreateSubFolder" method="post">
+                        <div class="form-group">
+                            <label for="subFolderName">Subfolder Name</label>
+                            <input type="text" class="form-control" id="subFolderName" name="subFolderName" required>
+                            <input type="hidden" name="parentFolderId" value="@ViewBag.CurrentFolderId" />
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="background-color: cadetblue;">Create Subfolder</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Subfolders</h3>
+@if (Model.Folders.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Created On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var folder in Model.Folders)
+            {
+                <tr>
+                    <td>
+                        <a href="@Url.Action("FolderContent", "Home", new { folderId = folder.Id })">
+                            @folder.Name
+                        </a>
+                    </td>
+                    <td>@folder.CreatedOn.ToShortDateString()</td>
+                    <td>
+                        <form asp-action="DeleteFolder" method="post">
+                            <input type="hidden" name="id" value="@folder.Id" />
+                            <a href="@Url.Action("DownloadFile", new { id = folder.Id })" class="btn btn-primary">Download</a>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No subfolders created yet.</p>
+}
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h3>Files</h3>
+        @if (Model.Files.Any())
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Uploaded On</th>
+                        <th>Size (KB)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in Model.Files)
+                    {
+                        <tr>
+                            <td>@file.Name</td>
+                            <td>@file.UploadedOn.ToShortDateString()</td>
+                            <td>@file.FileSizeInKB</td>
+                            <td>
+                                <form asp-action="DeleteFile" method="post">
+                                    <input type="hidden" name="id" value="@file.Id" />
+                                    <a href="@Url.Action("DownloadFile", new { id = file.Id })" class="btn btn-primary">Download</a>
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No files uploaded yet.</p>
+        }
+    </div>
+</div>
+
+
+<p>
+    <a asp-action="DownloadMetaAsPdf" asp-route-parentFolderId="@ViewBag.CurrentFolderId">Download Meta Information as PDF</a>
+</p>
